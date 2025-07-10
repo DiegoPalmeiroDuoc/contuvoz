@@ -68,8 +68,8 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
   recognition.lang = "es-ES";
-  recognition.continuous = false;
-  recognition.interimResults = false;
+  recognition.continuous = true;  // escucha indefinido
+  recognition.interimResults = true; // resultados parciales
 } else {
   alert("Lo siento, tu navegador no soporta SpeechRecognition.");
 }
@@ -85,7 +85,9 @@ startBtn.addEventListener("click", () => {
 
 if (recognition) {
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript.trim().toUpperCase();
+    // toma el último resultado parcial o final
+    const lastIndex = event.results.length - 1;
+    const transcript = event.results[lastIndex][0].transcript.trim().toUpperCase();
     resultado.textContent = `Has dicho: ${transcript}`;
 
     let detectedVocal = "-";
@@ -114,22 +116,20 @@ if (recognition) {
       vocalObjetivo = obtenerVocalAleatoria();
       vocalTexto.textContent = vocalObjetivo;
       imgVocal.src = `img/${vocalObjetivo.toLowerCase()}_sound.png`;
-
     } else {
       indicadorVolumen.textContent = "❌ No reconocí una vocal clara.";
     }
-  };
-
-  recognition.onend = () => {
-    detenerVolumen();
-    resultado.textContent += " | 🎙️ Fin.";
-    startBtn.classList.remove("bg-green-700", "animate-pulse");
   };
 
   recognition.onerror = (event) => {
     resultado.textContent = "Error: " + event.error;
     detenerVolumen();
     startBtn.classList.remove("bg-green-700", "animate-pulse");
+  };
+
+  recognition.onend = () => {
+    // para móviles, reintenta automáticamente
+    recognition.start();
   };
 }
 
@@ -164,7 +164,6 @@ function actualizarVolumen() {
   } else {
     barraVolumen.className = "h-full bg-red-500";
   }
-  indicadorVolumen.textContent += ""; // mantiene texto actual
   requestAnimationFrame(actualizarVolumen);
 }
 
