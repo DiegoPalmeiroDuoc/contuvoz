@@ -3,8 +3,8 @@
 <head>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#34d399">
-
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🔤 Vocales - Dinámico</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -52,7 +52,6 @@ const resultado = document.getElementById("resultado");
 const startBtn = document.getElementById("startRecognition");
 
 let recognition;
-let audioContext, analyser, microphone, dataArray;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -69,7 +68,8 @@ startBtn.addEventListener("click", () => {
     recognition.start();
     resultado.textContent = "🎤 Escuchando...";
     startBtn.classList.add("bg-green-700", "animate-pulse");
-    iniciarVolumen();
+    indicadorVolumen.textContent = "🎤 Escuchando...";
+    animateVolumen();
   }
 });
 
@@ -90,57 +90,39 @@ if (recognition) {
   };
 
   recognition.onend = () => {
-    detenerVolumen();
     resultado.textContent += " | 🎙️ Fin.";
     startBtn.classList.remove("bg-green-700", "animate-pulse");
+    indicadorVolumen.textContent = "🔈 Esperando voz...";
+    barraVolumen.style.width = "0%";
   };
 
   recognition.onerror = (event) => {
     resultado.textContent = "Error: " + event.error;
+    startBtn.classList.remove("bg-green-700", "animate-pulse");
+    indicadorVolumen.textContent = "❌ Error de reconocimiento.";
   };
 }
 
-function iniciarVolumen() {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      microphone = audioContext.createMediaStreamSource(stream);
-      analyser = audioContext.createAnalyser();
-      microphone.connect(analyser);
-      dataArray = new Uint8Array(analyser.fftSize);
-      actualizarVolumen();
-    });
-}
-
-function actualizarVolumen() {
-  if (!analyser) return;
-  analyser.getByteTimeDomainData(dataArray);
-  let sum = 0;
-  for (let i = 0; i < dataArray.length; i++) {
-    let val = (dataArray[i] - 128) / 128;
-    sum += val * val;
-  }
-  let volume = Math.sqrt(sum / dataArray.length) * 1000;
-  let volPercent = Math.min(volume, 100);
-
-  barraVolumen.style.width = `${volPercent}%`;
-  if (volPercent < 30) {
-    barraVolumen.className = "h-full bg-green-500";
-  } else if (volPercent < 70) {
-    barraVolumen.className = "h-full bg-yellow-400";
-  } else {
-    barraVolumen.className = "h-full bg-red-500";
-  }
-  indicadorVolumen.textContent = `🔈 Volumen: ${volPercent.toFixed(0)}`;
-  requestAnimationFrame(actualizarVolumen);
-}
-
-function detenerVolumen() {
-  if (audioContext) {
-    audioContext.close();
-    audioContext = null;
-    analyser = null;
-  }
+function animateVolumen() {
+  let i = 0;
+  const interval = setInterval(() => {
+    if (!startBtn.classList.contains("animate-pulse")) {
+      clearInterval(interval);
+      barraVolumen.style.width = "0%";
+      return;
+    }
+    const fakeVol = 30 + Math.abs(Math.sin(i/10) * 70);
+    barraVolumen.style.width = `${fakeVol}%`;
+    if (fakeVol < 30) {
+      barraVolumen.className = "h-full bg-green-500";
+    } else if (fakeVol < 70) {
+      barraVolumen.className = "h-full bg-yellow-400";
+    } else {
+      barraVolumen.className = "h-full bg-red-500";
+    }
+    indicadorVolumen.textContent = `🎤 Escuchando...`;
+    i++;
+  }, 100);
 }
 </script>
 </body>

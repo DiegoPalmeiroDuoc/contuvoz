@@ -3,13 +3,13 @@
 <head>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#34d399">
-
-  <meta charset="utf-8" />
-  <title>🗣️ Di esta palabra</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'Comic Sans MS', cursive, sans-serif; }
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗣️ Di esta palabra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { font-family: 'Comic Sans MS', cursive, sans-serif; }
+    </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-100 text-gray-800 flex flex-col items-center justify-center p-6">
   <section class="bg-white rounded-3xl shadow-2xl p-8 max-w-xl w-full text-center border-4 border-green-300">
@@ -23,12 +23,7 @@
       <strong id="palabraTexto" class="text-green-700 underline decoration-wavy">mamá</strong>
     </p>
 
-    <div id="volumenContainer" class="mb-6">
-      <div class="w-full h-6 rounded-lg bg-green-200 relative overflow-hidden">
-        <div id="barraVolumen" class="h-full bg-green-500 w-0 transition-all duration-200 ease-in-out"></div>
-      </div>
-      <div id="indicadorVolumen" class="mt-2 text-green-600 text-lg font-medium">🔈 Esperando voz...</div>
-    </div>
+    <div id="indicadorVolumen" class="mt-2 text-green-600 text-lg font-medium mb-6">🔈 Esperando voz...</div>
 
     <button id="startRecognition"
       class="bg-green-500 hover:bg-green-600 text-white font-bold text-xl py-3 px-6 rounded-xl shadow-lg transition mb-6">
@@ -45,13 +40,11 @@
 
 <script>
 const palabraTexto = document.getElementById("palabraTexto");
-const barraVolumen = document.getElementById("barraVolumen");
 const indicadorVolumen = document.getElementById("indicadorVolumen");
 const resultado = document.getElementById("resultado");
 const startBtn = document.getElementById("startRecognition");
 
 let recognition;
-let audioContext, analyser, microphone, dataArray;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -60,15 +53,15 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   recognition.continuous = false;
   recognition.interimResults = false;
 } else {
-  alert("Lo siento, tu navegador no soporta SpeechRecognition.");
+  alert("Lo siento, tu navegador no soporta reconocimiento de voz.");
 }
 
 startBtn.addEventListener("click", () => {
   if (recognition) {
     recognition.start();
-    resultado.textContent = "🎤 Escuchando...";
+    indicadorVolumen.textContent = "🎤 Escuchando...";
+    resultado.textContent = "";
     startBtn.classList.add("bg-green-700", "animate-pulse");
-    iniciarVolumen();
   }
 });
 
@@ -85,57 +78,15 @@ if (recognition) {
   };
 
   recognition.onend = () => {
-    detenerVolumen();
-    resultado.textContent += " | 🎙️ Fin.";
+    indicadorVolumen.textContent = "🔈 Esperando voz...";
     startBtn.classList.remove("bg-green-700", "animate-pulse");
   };
 
   recognition.onerror = (event) => {
     resultado.textContent = "Error: " + event.error;
+    startBtn.classList.remove("bg-green-700", "animate-pulse");
+    indicadorVolumen.textContent = "❌ Error de reconocimiento.";
   };
-}
-
-function iniciarVolumen() {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      microphone = audioContext.createMediaStreamSource(stream);
-      analyser = audioContext.createAnalyser();
-      microphone.connect(analyser);
-      dataArray = new Uint8Array(analyser.fftSize);
-      actualizarVolumen();
-    });
-}
-
-function actualizarVolumen() {
-  if (!analyser) return;
-  analyser.getByteTimeDomainData(dataArray);
-  let sum = 0;
-  for (let i = 0; i < dataArray.length; i++) {
-    let val = (dataArray[i] - 128) / 128;
-    sum += val * val;
-  }
-  let volume = Math.sqrt(sum / dataArray.length) * 1000;
-  let volPercent = Math.min(volume, 100);
-
-  barraVolumen.style.width = `${volPercent}%`;
-  if (volPercent < 30) {
-    barraVolumen.className = "h-full bg-green-500";
-  } else if (volPercent < 70) {
-    barraVolumen.className = "h-full bg-yellow-400";
-  } else {
-    barraVolumen.className = "h-full bg-red-500";
-  }
-  indicadorVolumen.textContent = `🔈 Volumen: ${volPercent.toFixed(0)}`;
-  requestAnimationFrame(actualizarVolumen);
-}
-
-function detenerVolumen() {
-  if (audioContext) {
-    audioContext.close();
-    audioContext = null;
-    analyser = null;
-  }
 }
 </script>
 </body>
