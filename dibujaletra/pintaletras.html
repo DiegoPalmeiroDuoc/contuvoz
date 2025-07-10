@@ -38,7 +38,7 @@
       class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold text-base py-2 px-4 rounded-xl shadow transition">
       🧽 Limpiar
     </button>
-    <a href="menu.html"
+    <a href="../menu.html"
       class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold text-base py-2 px-4 rounded-xl shadow transition">
       ⬅ Menú
     </a>
@@ -80,16 +80,13 @@ function centerTarget() {
       }
     }
   }
-  const offsetCenterX = (gridSize - (minX+maxX))/2;
-  const offsetCenterY = (gridSize - (minY+maxY))/2;
-  offsetX = offsetCenterX;
-  offsetY = offsetCenterY;
+  offsetX = (gridSize - (minX+maxX))/2;
+  offsetY = (gridSize - (minY+maxY))/2;
 }
 
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // sombra guía centrada
   for (let y = 0; y < gridSize; y++) {
     for (let x = 0; x < gridSize; x++) {
       let dx = x+offsetX, dy = y+offsetY;
@@ -100,7 +97,6 @@ function drawGrid() {
     }
   }
 
-  // lo pintado por el usuario encima
   for (let y = 0; y < gridSize; y++) {
     for (let x = 0; x < gridSize; x++) {
       if (userGrid[y][x]) {
@@ -175,7 +171,6 @@ function verificarDibujo() {
     : `Intenta de nuevo. ${porcentaje.toFixed(1)}% correcto`;
   mensaje.classList.toggle('text-green-800', porcentaje >= 80);
   mensaje.classList.toggle('text-red-600', porcentaje < 80);
-
   if (porcentaje >= 80) {
     confetti({particleCount:120, spread:70, origin:{y:0.6}});
   }
@@ -214,6 +209,32 @@ canvas.addEventListener('mousemove', e => {
 });
 canvas.addEventListener('mouseup', () => dibujando = false);
 canvas.addEventListener('mouseleave', () => dibujando = false);
+
+// Soporte táctil móvil
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  dibujando = true;
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((touch.clientX - rect.left) / cellSize);
+  const y = Math.floor((touch.clientY - rect.top) / cellSize);
+  pintar(x, y);
+  drawGrid();
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!dibujando) return;
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((touch.clientX - rect.left) / cellSize);
+  const y = Math.floor((touch.clientY - rect.top) / cellSize);
+  pintar(x, y);
+  drawGrid();
+});
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  dibujando = false;
+});
 
 const select = document.getElementById('letra');
 select.innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => `<option value="${l}">${l}</option>`).join('');
