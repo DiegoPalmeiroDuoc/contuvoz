@@ -74,20 +74,34 @@ startBtn.addEventListener("click", () => {
 });
 
 if (recognition) {
-  recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript.toUpperCase();
-    resultado.textContent = `Has dicho: ${transcript}`;
+ recognition.onresult = (event) => {
+  const transcript = event.results[0][0].transcript.trim().toUpperCase();
+  resultado.textContent = `Has dicho: ${transcript}`;
 
-    const vocalMatch = transcript.match(/[AEIOU]/);
-    if (vocalMatch) {
-      const vocal = vocalMatch[0];
-      vocalTexto.textContent = vocal;
-      imgVocal.src = `img/${vocal.toLowerCase()}_sound.png`;
+  if (["A","E","I","O","U"].includes(transcript)) {
+    // Es una vocal aislada
+    vocalTexto.textContent = transcript;
+    imgVocal.src = `img/${transcript.toLowerCase()}_sound.png`;
+  } else {
+    // Buscar vocal más repetida dentro del texto
+    const counts = {A:0, E:0, I:0, O:0, U:0};
+    for (const c of transcript) {
+      if (counts.hasOwnProperty(c)) counts[c]++;
+    }
+    const mostCommon = Object.keys(counts).reduce((a,b)=> counts[a]>counts[b]?a:b);
+    
+    if (counts[mostCommon] > 0) {
+      vocalTexto.textContent = mostCommon;
+      imgVocal.src = `img/${mostCommon.toLowerCase()}_sound.png`;
     } else {
       vocalTexto.textContent = "-";
       imgVocal.src = "img/a_sound.png";
     }
-  };
+
+    resultado.textContent += " | No fue una vocal aislada.";
+  }
+};
+
 
   recognition.onend = () => {
     resultado.textContent += " | 🎙️ Fin.";
@@ -100,9 +114,11 @@ if (recognition) {
     resultado.textContent = "Error: " + event.error;
     startBtn.classList.remove("bg-green-700", "animate-pulse");
     indicadorVolumen.textContent = "❌ Error de reconocimiento.";
+    barraVolumen.style.width = "0%";
   };
 }
 
+// animación "falsa" de volumen
 function animateVolumen() {
   let i = 0;
   const interval = setInterval(() => {
@@ -120,7 +136,6 @@ function animateVolumen() {
     } else {
       barraVolumen.className = "h-full bg-red-500";
     }
-    indicadorVolumen.textContent = `🎤 Escuchando...`;
     i++;
   }, 100);
 }
