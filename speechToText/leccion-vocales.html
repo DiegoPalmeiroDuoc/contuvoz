@@ -13,14 +13,14 @@
 </head>
 <body class="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-100 flex items-center justify-center p-6 text-gray-800">
   <section class="bg-white rounded-3xl shadow-2xl p-10 max-w-xl w-full text-center border-4 border-green-300">
-    <h2 class="text-4xl font-bold text-green-700 mb-6">🔤 Di una vocal</h2>
+    <h2 class="text-4xl font-bold text-green-700 mb-6">🔤 Repite la vocal</h2>
 
     <img id="imgVocal" src="img/a_sound.png"
       alt="Imagen de vocal"
       class="w-48 h-48 mx-auto mb-6 object-contain rounded-2xl border-4 border-green-300" />
 
     <p class="text-xl font-semibold mb-4">
-      Vocal detectada: <strong id="vocalTexto" class="text-green-800 underline decoration-wavy">A</strong>
+      Vocal solicitada: <strong id="vocalTexto" class="text-green-800 underline decoration-wavy">A</strong>
     </p>
 
     <div id="volumenContainer" class="mb-6">
@@ -52,6 +52,17 @@ const resultado = document.getElementById("resultado");
 const startBtn = document.getElementById("startRecognition");
 
 let recognition;
+let audioContext, analyser, microphone, dataArray;
+
+// Vocal aleatoria solicitada
+let vocalObjetivo = obtenerVocalAleatoria();
+vocalTexto.textContent = vocalObjetivo;
+imgVocal.src = `img/${vocalObjetivo.toLowerCase()}_sound.png`;
+
+function obtenerVocalAleatoria() {
+  const vocales = ["A", "E", "I", "O", "U"];
+  return vocales[Math.floor(Math.random() * vocales.length)];
+}
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -68,62 +79,101 @@ startBtn.addEventListener("click", () => {
     recognition.start();
     resultado.textContent = "🎤 Escuchando...";
     startBtn.classList.add("bg-green-700", "animate-pulse");
-    indicadorVolumen.textContent = "🎤 Escuchando...";
-    animateVolumen();
+    iniciarVolumen();
   }
 });
 
 if (recognition) {
- recognition.onresult = (event) => {
-  const transcript = event.results[0][0].transcript.trim().toUpperCase();
-  resultado.textContent = `Has dicho: ${transcript}`;
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript.trim().toUpperCase();
+    resultado.textContent = `Has dicho: ${transcript}`;
 
-  // heurística simple: buscar sonidos típicos
-  let detectedVocal = "-";
-  if (/A+|AH+|HA+/.test(transcript)) {
-    detectedVocal = "A";
-  } else if (/E+|EH+|HE+/.test(transcript)) {
-    detectedVocal = "E";
-  } else if (/I+|IH+|HI+/.test(transcript)) {
-    detectedVocal = "I";
-  } else if (/O+|OH+|HO+/.test(transcript)) {
-    detectedVocal = "O";
-  } else if (/U+|UH+|HU+/.test(transcript)) {
-    detectedVocal = "U";
-  }
+    let detectedVocal = "-";
+    if (/A+|AH+|HA+/.test(transcript)) {
+      detectedVocal = "A";
+    } else if (/E+|EH+|HE+/.test(transcript)) {
+      detectedVocal = "E";
+    } else if (/I+|IH+|HI+/.test(transcript)) {
+      detectedVocal = "I";
+    } else if (/O+|OH+|HO+/.test(transcript)) {
+      detectedVocal = "O";
+    } else if (/U+|UH+|HU+/.test(transcript)) {
+      detectedVocal = "U";
+    }
 
-  if (detectedVocal !== "-") {
-    vocalTexto.textContent = detectedVocal;
-    imgVocal.src = `img/${detectedVocal.toLowerCase()}_sound.png`;
-  } else {
-    vocalTexto.textContent = "-";
-    imgVocal.src = "img/a_sound.png";
-    resultado.textContent += " | No reconocí una vocal clara.";
-  }
-};
+    if (detectedVocal !== "-") {
+      imgVocal.src = `img/${detectedVocal.toLowerCase()}_sound.png`;
 
+      if (detectedVocal === vocalObjetivo) {
+        indicadorVolumen.textContent = `✅ ¡Correcto! Era la ${detectedVocal}`;
+      } else {
+        indicadorVolumen.textContent = `❌ Dijiste ${detectedVocal}, intenta con la ${vocalObjetivo}`;
+      }
+
+      // Nueva vocal objetivo
+      vocalObjetivo = obtenerVocalAleatoria();
+      vocalTexto.textContent = vocalObjetivo;
+      imgVocal.src = `img/${vocalObjetivo.toLowerCase()}_sound.png`;
+
+    } else {
+      indicadorVolumen.textContent = "❌ No reconocí una vocal clara.";
+    }
+  };
+
+  recognition.onend = () => {
+    detenerVolumen();
+    resultado.textContent += " | 🎙️ Fin.";
+    startBtn.classList.remove("bg-green-700", "animate-pulse");
+  };
+
+  recognition.onerror = (event) => {
+    resultado.textContent = "Error: " + event.error;
+    detenerVolumen();
+    startBtn.classList.remove("bg-green-700", "animate-pulse");
+  };
 }
 
-// animación "falsa" de volumen
-function animateVolumen() {
-  let i = 0;
-  const interval = setInterval(() => {
-    if (!startBtn.classList.contains("animate-pulse")) {
-      clearInterval(interval);
-      barraVolumen.style.width = "0%";
-      return;
-    }
-    const fakeVol = 30 + Math.abs(Math.sin(i/10) * 70);
-    barraVolumen.style.width = `${fakeVol}%`;
-    if (fakeVol < 30) {
-      barraVolumen.className = "h-full bg-green-500";
-    } else if (fakeVol < 70) {
-      barraVolumen.className = "h-full bg-yellow-400";
-    } else {
-      barraVolumen.className = "h-full bg-red-500";
-    }
-    i++;
-  }, 100);
+function iniciarVolumen() {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      microphone = audioContext.createMediaStreamSource(stream);
+      analyser = audioContext.createAnalyser();
+      microphone.connect(analyser);
+      dataArray = new Uint8Array(analyser.fftSize);
+      actualizarVolumen();
+    });
+}
+
+function actualizarVolumen() {
+  if (!analyser) return;
+  analyser.getByteTimeDomainData(dataArray);
+  let sum = 0;
+  for (let i = 0; i < dataArray.length; i++) {
+    let val = (dataArray[i] - 128) / 128;
+    sum += val * val;
+  }
+  let volume = Math.sqrt(sum / dataArray.length) * 1000;
+  let volPercent = Math.min(volume, 100);
+
+  barraVolumen.style.width = `${volPercent}%`;
+  if (volPercent < 30) {
+    barraVolumen.className = "h-full bg-green-500";
+  } else if (volPercent < 70) {
+    barraVolumen.className = "h-full bg-yellow-400";
+  } else {
+    barraVolumen.className = "h-full bg-red-500";
+  }
+  indicadorVolumen.textContent += ""; // mantiene texto actual
+  requestAnimationFrame(actualizarVolumen);
+}
+
+function detenerVolumen() {
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+    analyser = null;
+  }
 }
 </script>
 </body>
