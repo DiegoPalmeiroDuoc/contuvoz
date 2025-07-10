@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Captura Dataset Manos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.min.js"></script>
+  <style>
+    body { text-align: center; font-family: sans-serif; background: #f1f5f9; }
+    #wrapper { position: relative; display: inline-block; margin-top: 10px;}
+    video, canvas {
+      position: absolute; top:0; left:0;
+      width: 640px; height:480px; border-radius: 10px;
+    }
+    video { border: 4px solid #22c55e; }
+    #buttonsContainer { margin-top: 15px; }
+    button { font-size: 1rem; margin: 3px; padding: 8px 12px; border-radius: 8px; background: #22c55e; color: white; border: none; cursor: pointer;}
+    button:hover { background: #16a34a; }
+  </style>
+</head>
+<body>
+  <h1>🖐 Captura tu Dataset de Manos</h1>
+  <div id="wrapper">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+  </div>
+  <div id="buttonsContainer"></div>
+  <button onclick="descargarDatos()">💾 Descargar Dataset JSON</button>
+  <h2 id="status">Esperando...</h2>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+const buttonsContainer = document.getElementById('buttonsContainer');
+
+let examples = [];
+let labels = [];
+let currentFeatures = null;
+
+// === Botones dinámicos A–Y ===
+const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXY'.split('');
+letras.forEach(letra => {
+  const btn = document.createElement('button');
+  btn.textContent = `📸 ${letra}`;
+  btn.onclick = () => addExample(letra);
+  buttonsContainer.appendChild(btn);
+});
+
+const hands = new Hands({
+  locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+hands.setOptions({ maxNumHands: 1, minDetectionConfidence: 0.2, minTrackingConfidence: 0.2 });
+
+hands.onResults(results => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+    const lm = results.multiHandLandmarks[0];
+    drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: '#22c55e', lineWidth: 4 });
+    drawLandmarks(ctx, lm, { color: '#2563eb', lineWidth: 2 });
+    currentFeatures = lm.flatMap(p => [p.x, p.y, p.z]);
+  } else {
+    currentFeatures = null;
+    ctx.fillStyle = "red";
+    ctx.font = "24px sans-serif";
+    ctx.fillText("NO DETECTA MANO", 20, 40);
+  }
+});
+
+const camera = new Camera(video, {
+  onFrame: async () => await hands.send({ image: video }),
+  width: 640, height: 480
+});
+camera.start();
+
+function addExample(label) {
+  if (!currentFeatures) {
+    status.textContent = "⏳ Esperando mano...";
+    let tries = 0;
+    const interval = setInterval(() => {
+      if (currentFeatures) {
+        examples.push(currentFeatures);
+        labels.push(label);
+        status.textContent = `Ejemplo para ${label} guardado (${examples.length})`;
+        clearInterval(interval);
+      } else if (++tries > 20) {
+        status.textContent = "❌ No detectó landmarks claros.";
+        clearInterval(interval);
+      }
+    }, 100);
+  } else {
+    examples.push(currentFeatures);
+    labels.push(label);
+    status.textContent = `Ejemplo para ${label} guardado (${examples.length})`;
+  }
+}
+
+function descargarDatos() {
+  const dataset = examples.map((e, i) => ({ landmarks: e, label: labels[i] }));
+  const blob = new Blob([JSON.stringify(dataset, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "dataset_manos.json";
+  a.click();
+}
+</script>
+</body>
+</html>
