@@ -85,47 +85,46 @@ startBtn.addEventListener("click", () => {
 
 if (recognition) {
   recognition.onresult = (event) => {
-    // toma el último resultado parcial o final
-    const lastIndex = event.results.length - 1;
-    const transcript = event.results[lastIndex][0].transcript.trim().toUpperCase();
-    resultado.textContent = `Has dicho: ${transcript}`;
+  const lastIndex = event.results.length - 1;
+  const transcript = event.results[lastIndex][0].transcript.trim().toUpperCase();
+  resultado.textContent = `Has dicho: ${transcript}`;
 
-    let detectedVocal = "-";
-    if (/A+|AH+|HA+/.test(transcript)) {
-      detectedVocal = "A";
-    } else if (/E+|EH+|HE+/.test(transcript)) {
-      detectedVocal = "E";
-    } else if (/I+|IH+|HI+/.test(transcript)) {
-      detectedVocal = "I";
-    } else if (/O+|OH+|HO+/.test(transcript)) {
-      detectedVocal = "O";
-    } else if (/U+|UH+|HU+/.test(transcript)) {
-      detectedVocal = "U";
-    }
+  let detectedVocal = "-";
+  if (/A+|AH+|HA+/.test(transcript)) {
+    detectedVocal = "A";
+  } else if (/E+|EH+|HE+/.test(transcript)) {
+    detectedVocal = "E";
+  } else if (/I+|IH+|HI+/.test(transcript)) {
+    detectedVocal = "I";
+  } else if (/O+|OH+|HO+/.test(transcript)) {
+    detectedVocal = "O";
+  } else if (/U+|UH+|HU+/.test(transcript)) {
+    detectedVocal = "U";
+  }
 
-    if (detectedVocal !== "-") {
-      imgVocal.src = `img/${detectedVocal.toLowerCase()}_sound.png`;
+  if (detectedVocal !== "-") {
+    imgVocal.src = `img/${detectedVocal.toLowerCase()}_sound.png`;
 
-      if (detectedVocal === vocalObjetivo) {
-        indicadorVolumen.textContent = `✅ ¡Correcto! Era la ${detectedVocal}`;
-      } else {
-        indicadorVolumen.textContent = `❌ Dijiste ${detectedVocal}, intenta con la ${vocalObjetivo}`;
-      }
-
-      // Nueva vocal objetivo
-      vocalObjetivo = obtenerVocalAleatoria();
-      vocalTexto.textContent = vocalObjetivo;
-      imgVocal.src = `img/${vocalObjetivo.toLowerCase()}_sound.png`;
+    if (detectedVocal === vocalObjetivo) {
+      indicadorVolumen.textContent = `✅ ¡Correcto! Era la ${detectedVocal}`;
     } else {
-      indicadorVolumen.textContent = "❌ No reconocí una vocal clara.";
+      indicadorVolumen.textContent = `❌ Dijiste ${detectedVocal}, intenta con la ${vocalObjetivo}`;
     }
-  };
 
-  recognition.onerror = (event) => {
-    resultado.textContent = "Error: " + event.error;
+    // Nueva vocal objetivo
+    vocalObjetivo = obtenerVocalAleatoria();
+    vocalTexto.textContent = vocalObjetivo;
+    imgVocal.src = `img/${vocalObjetivo.toLowerCase()}_sound.png`;
+
+    // STOP
+    recognition.stop();
     detenerVolumen();
     startBtn.classList.remove("bg-green-700", "animate-pulse");
-  };
+  } else {
+    indicadorVolumen.textContent = "❌ No reconocí una vocal clara.";
+  }
+};
+
 
   recognition.onend = () => {
     // para móviles, reintenta automáticamente
