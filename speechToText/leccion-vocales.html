@@ -78,44 +78,30 @@ if (recognition) {
   const transcript = event.results[0][0].transcript.trim().toUpperCase();
   resultado.textContent = `Has dicho: ${transcript}`;
 
-  if (["A","E","I","O","U"].includes(transcript)) {
-    // Es una vocal aislada
-    vocalTexto.textContent = transcript;
-    imgVocal.src = `img/${transcript.toLowerCase()}_sound.png`;
-  } else {
-    // Buscar vocal más repetida dentro del texto
-    const counts = {A:0, E:0, I:0, O:0, U:0};
-    for (const c of transcript) {
-      if (counts.hasOwnProperty(c)) counts[c]++;
-    }
-    const mostCommon = Object.keys(counts).reduce((a,b)=> counts[a]>counts[b]?a:b);
-    
-    if (counts[mostCommon] > 0) {
-      vocalTexto.textContent = mostCommon;
-      imgVocal.src = `img/${mostCommon.toLowerCase()}_sound.png`;
-    } else {
-      vocalTexto.textContent = "-";
-      imgVocal.src = "img/a_sound.png";
-    }
+  // heurística simple: buscar sonidos típicos
+  let detectedVocal = "-";
+  if (/A+|AH+|HA+/.test(transcript)) {
+    detectedVocal = "A";
+  } else if (/E+|EH+|HE+/.test(transcript)) {
+    detectedVocal = "E";
+  } else if (/I+|IH+|HI+/.test(transcript)) {
+    detectedVocal = "I";
+  } else if (/O+|OH+|HO+/.test(transcript)) {
+    detectedVocal = "O";
+  } else if (/U+|UH+|HU+/.test(transcript)) {
+    detectedVocal = "U";
+  }
 
-    resultado.textContent += " | No fue una vocal aislada.";
+  if (detectedVocal !== "-") {
+    vocalTexto.textContent = detectedVocal;
+    imgVocal.src = `img/${detectedVocal.toLowerCase()}_sound.png`;
+  } else {
+    vocalTexto.textContent = "-";
+    imgVocal.src = "img/a_sound.png";
+    resultado.textContent += " | No reconocí una vocal clara.";
   }
 };
 
-
-  recognition.onend = () => {
-    resultado.textContent += " | 🎙️ Fin.";
-    startBtn.classList.remove("bg-green-700", "animate-pulse");
-    indicadorVolumen.textContent = "🔈 Esperando voz...";
-    barraVolumen.style.width = "0%";
-  };
-
-  recognition.onerror = (event) => {
-    resultado.textContent = "Error: " + event.error;
-    startBtn.classList.remove("bg-green-700", "animate-pulse");
-    indicadorVolumen.textContent = "❌ Error de reconocimiento.";
-    barraVolumen.style.width = "0%";
-  };
 }
 
 // animación "falsa" de volumen
