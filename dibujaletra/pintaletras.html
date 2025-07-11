@@ -162,13 +162,18 @@ function limpiarCanvas() {
   userGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
   drawGrid();
 }
-
 function verificarDibujo() {
   let correctas = 0, total = 0;
   for (let y = 0; y < gridSize; y++) {
     for (let x = 0; x < gridSize; x++) {
-      if (targetGrid[y][x]) total++;
-      if (targetGrid[y][x] && userGrid[y][x]) correctas++;
+      if (targetGrid[y][x]) {
+        total++;
+        let ux = x + offsetX;
+        let uy = y + offsetY;
+        if (ux >=0 && uy >=0 && ux < gridSize && uy < gridSize && userGrid[uy][ux]) {
+          correctas++;
+        }
+      }
     }
   }
   const porcentaje = total > 0 ? (correctas / total) * 100 : 0;
@@ -182,6 +187,7 @@ function verificarDibujo() {
     confetti({particleCount:120, spread:70, origin:{y:0.6}});
   }
 }
+
 
 
 function getMouseGridPos(evt) {
