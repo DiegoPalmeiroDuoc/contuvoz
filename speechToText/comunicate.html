@@ -38,7 +38,7 @@
   </style>
 </head>
 
-<body class="bg-green-100 bg-[url('../../img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed min-h-screen 
+<body class="bg-green-100 bg-[url('../img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed min-h-screen 
   font-sans text-center p-6 flex flex-col justify-center items-center">
 
 <section class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-4xl border-4 border-green-300 
@@ -57,7 +57,7 @@
     <p class="text-base sm:text-lg text-gray-700 mb-4">Haz la seña que se indica y mantenla por 3 segundos.</p>
     <div id="videoWrapper" class="mb-6 shadow-lg border-4 border-green-400 rounded-xl overflow-hidden relative">
       <video id="videoElement" class="scale-x-[-1]" autoplay playsinline muted></video>
-      <canvas id="outputCanvas" ></canvas>
+      <canvas id="outputCanvas" class="scale-x-[-1]" ></canvas>
       <div id="letraDetectada" class="overlay-text absolute"></div>
       <div id="conteoEstado" class="overlay-text absolute"></div>
     </div>
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function actualizarLetraObjetivo(nuevaLetra) {
     letraObjetivo = nuevaLetra;
-    imgSeña.src = `../img/senas/${letraObjetivo}.png`;
+    imgSeña.src = `../img/senas/${letraObjetivo.toLowerCase()}.png`;
     letraObjetivoTexto.textContent = letraObjetivo;
   }
 
