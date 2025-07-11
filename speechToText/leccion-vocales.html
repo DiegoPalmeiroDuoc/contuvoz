@@ -1,47 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#34d399">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔤 Vocales - Dinámico</title>
+  <title>🔤 Vocales - Mantener para hablar</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#34d399">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- <style>
+  <style>
     body { font-family: 'Comic Sans MS', cursive, sans-serif; }
-  </style> -->
+  </style>
 </head>
-<body class="bg-green-100 bg-[url('../img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed h-screen 
-  bg-green-100 font-sans text-center p-6 flex flex-col justify-center items-center">
-  <section class="bg-white rounded-3xl shadow-2xl p-10 max-w-xl w-full text-center border-4 border-green-300">
+<body class="bg-green-100 bg-[url('../img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed min-h-screen
+  flex flex-col justify-center items-center p-6">
+
+  <section class="bg-white rounded-3xl shadow-2xl p-8 max-w-xl w-full text-center border-4 border-green-300">
     <h2 class="text-4xl font-bold text-green-700 mb-6">🔤 Repite la vocal</h2>
 
-    <img id="imgVocal" src="img/a_sound.png"
-      alt="Imagen de vocal"
-      class="w-48 h-48 mx-auto mb-6 object-contain rounded-2xl border-4 border-green-300" />
+    <div class="flex items-center justify-center gap-4 mb-6">
+      <img id="imgVocal" src="../../img/a_sound.png" alt="Imagen vocal"
+        class="w-32 h-32 object-contain rounded-2xl border-4 border-green-300" />
+      <button onclick="playAudio()"
+        class="bg-green-400 hover:bg-green-500 text-white text-3xl p-4 rounded-full shadow transition">
+        🔊
+      </button>
+    </div>
 
     <p class="text-xl font-semibold mb-4">
       Vocal solicitada: <strong id="vocalTexto" class="text-green-800 underline decoration-wavy">A</strong>
     </p>
 
-    <div id="volumenContainer" class="mb-6">
-      <div class="w-full h-6 rounded-lg bg-green-200 relative overflow-hidden">
+    <div class="mb-6">
+      <div class="w-full h-6 rounded-lg bg-green-200 relative overflow-hidden mb-2">
         <div id="barraVolumen" class="h-full bg-green-500 w-0 transition-all duration-200 ease-in-out"></div>
       </div>
-      <div id="indicadorVolumen" class="mt-2 text-green-600 text-lg font-medium">🔈 Esperando voz...</div>
+      <div id="indicadorVolumen" class="text-green-600 text-lg font-medium">🔈 Esperando voz...</div>
     </div>
 
-    <button id="startRecognition"
-      class="bg-green-500 hover:bg-green-600 text-white font-bold text-xl py-3 px-6 rounded-xl shadow-lg transition mb-6">
-      🎙️ Escuchar
+    <button id="micButton"
+      class="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-3 px-6 rounded-full shadow-lg transition">
+      🎙️ Mantén para hablar
     </button>
 
-    <p id="resultado" class="text-lg text-gray-700 mb-6 min-h-[2rem]"></p>
+    <p id="resultado" class="text-lg text-gray-700 mt-6 min-h-[2rem]"></p>
 
-    <a href="../speechToText/hablemos.html"
-      class="inline-block bg-yellow-400 hover:bg-yellow-500 text-white font-bold text-lg px-6 py-2 rounded-xl shadow">
-      ⬅ Volver
-    </a>
+    <div class="mt-8">
+      <a href="../speechToText/hablemos.html"
+        class="inline-block bg-yellow-400 hover:bg-yellow-500 text-white font-bold text-lg px-6 py-2 rounded-xl shadow">
+        ⬅ Volver
+      </a>
+    </div>
   </section>
 
 <script>
@@ -50,89 +58,101 @@ const imgVocal = document.getElementById("imgVocal");
 const barraVolumen = document.getElementById("barraVolumen");
 const indicadorVolumen = document.getElementById("indicadorVolumen");
 const resultado = document.getElementById("resultado");
-const startBtn = document.getElementById("startRecognition");
+const micButton = document.getElementById("micButton");
 
 let recognition;
 let audioContext, analyser, microphone, dataArray;
-
-// Vocal aleatoria solicitada
 let vocalObjetivo = obtenerVocalAleatoria();
+
 vocalTexto.textContent = vocalObjetivo;
-imgVocal.src = `img/${vocalObjetivo.toLowerCase()}_sound.png`;
+imgVocal.src = `../img/${vocalObjetivo.toLowerCase()}_sound.png`;
 
 function obtenerVocalAleatoria() {
   const vocales = ["A", "E", "I", "O", "U"];
   return vocales[Math.floor(Math.random() * vocales.length)];
 }
 
+function playAudio() {
+  const audio = new Audio(`audio/${vocalObjetivo.toLowerCase()}.mp3`);
+  audio.play();
+}
+
+// === CONFIGURAR SPEECH RECOGNITION ===
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
   recognition.lang = "es-ES";
-  recognition.continuous = true;  // escucha indefinido
-  recognition.interimResults = true; // resultados parciales
+  recognition.continuous = false;
+  recognition.interimResults = false;
 } else {
-  alert("Lo siento, tu navegador no soporta SpeechRecognition.");
+  alert("Lo siento, tu navegador no soporta reconocimiento de voz.");
 }
 
-startBtn.addEventListener("click", () => {
+// === EVENTOS BOTÓN MICROFONO ===
+micButton.addEventListener("mousedown", iniciarReconocimiento);
+micButton.addEventListener("touchstart", iniciarReconocimiento);
+
+micButton.addEventListener("mouseup", detenerReconocimiento);
+micButton.addEventListener("mouseleave", detenerReconocimiento);
+micButton.addEventListener("touchend", detenerReconocimiento);
+
+function iniciarReconocimiento() {
   if (recognition) {
     recognition.start();
-    resultado.textContent = "🎤 Escuchando...";
-    startBtn.classList.add("bg-green-700", "animate-pulse");
+    indicadorVolumen.textContent = "🎤 Escuchando...";
+    resultado.textContent = "";
+    micButton.classList.add("bg-green-700", "animate-pulse");
     iniciarVolumen();
   }
-});
+}
 
-if (recognition) {
-  recognition.onresult = (event) => {
-  const lastIndex = event.results.length - 1;
-  const transcript = event.results[lastIndex][0].transcript.trim().toUpperCase();
-  resultado.textContent = `Has dicho: ${transcript}`;
-
-  let detectedVocal = "-";
-  if (/A+|AH+|HA+/.test(transcript)) {
-    detectedVocal = "A";
-  } else if (/E+|EH+|HE+/.test(transcript)) {
-    detectedVocal = "E";
-  } else if (/I+|IH+|HI+/.test(transcript)) {
-    detectedVocal = "I";
-  } else if (/O+|OH+|HO+/.test(transcript)) {
-    detectedVocal = "O";
-  } else if (/U+|UH+|HU+/.test(transcript)) {
-    detectedVocal = "U";
-  }
-
-  if (detectedVocal !== "-") {
-    imgVocal.src = `img/${detectedVocal.toLowerCase()}_sound.png`;
-
-    if (detectedVocal === vocalObjetivo) {
-      indicadorVolumen.textContent = `✅ ¡Correcto! Era la ${detectedVocal}`;
-    } else {
-      indicadorVolumen.textContent = `❌ Dijiste ${detectedVocal}, intenta con la ${vocalObjetivo}`;
-    }
-
-    // Nueva vocal objetivo
-    vocalObjetivo = obtenerVocalAleatoria();
-    vocalTexto.textContent = vocalObjetivo;
-    imgVocal.src = `img/${vocalObjetivo.toLowerCase()}_sound.png`;
-
-    // STOP
+function detenerReconocimiento() {
+  if (recognition) {
     recognition.stop();
     detenerVolumen();
-    startBtn.classList.remove("bg-green-700", "animate-pulse");
-  } else {
-    indicadorVolumen.textContent = "❌ No reconocí una vocal clara.";
+    micButton.classList.remove("bg-green-700", "animate-pulse");
   }
-};
+}
 
+// === PROCESAR RESULTADO ===
+if (recognition) {
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript.trim().toUpperCase();
+    resultado.textContent = `Has dicho: ${transcript}`;
+
+    let detectedVocal = "-";
+    if (/A+|AH+|HA+/.test(transcript)) detectedVocal = "A";
+    else if (/E+|EH+|HE+/.test(transcript)) detectedVocal = "E";
+    else if (/I+|IH+|HI+/.test(transcript)) detectedVocal = "I";
+    else if (/O+|OH+|HO+/.test(transcript)) detectedVocal = "O";
+    else if (/U+|UH+|HU+/.test(transcript)) detectedVocal = "U";
+
+    if (detectedVocal !== "-") {
+      imgVocal.src = `img/${detectedVocal.toLowerCase()}_sound.png`;
+      if (detectedVocal === vocalObjetivo) {
+        indicadorVolumen.textContent = `✅ ¡Correcto! Era la ${detectedVocal}`;
+      } else {
+        indicadorVolumen.textContent = `❌ Dijiste ${detectedVocal}, intenta con la ${vocalObjetivo}`;
+      }
+    } else {
+      indicadorVolumen.textContent = "❌ No reconocí una vocal clara.";
+    }
+  };
+
+  recognition.onerror = (event) => {
+    indicadorVolumen.textContent = "❌ Error de reconocimiento.";
+    detenerVolumen();
+    micButton.classList.remove("bg-green-700", "animate-pulse");
+  };
 
   recognition.onend = () => {
-    // para móviles, reintenta automáticamente
-    recognition.start();
+    detenerVolumen();
+    micButton.classList.remove("bg-green-700", "animate-pulse");
+    indicadorVolumen.textContent = "🔈 Esperando voz...";
   };
 }
 
+// === VOLUMEN CON ANALYSER ===
 function iniciarVolumen() {
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   navigator.mediaDevices.getUserMedia({ audio: true })
@@ -157,13 +177,10 @@ function actualizarVolumen() {
   let volPercent = Math.min(volume, 100);
 
   barraVolumen.style.width = `${volPercent}%`;
-  if (volPercent < 30) {
-    barraVolumen.className = "h-full bg-green-500";
-  } else if (volPercent < 70) {
-    barraVolumen.className = "h-full bg-yellow-400";
-  } else {
-    barraVolumen.className = "h-full bg-red-500";
-  }
+  if (volPercent < 30) barraVolumen.className = "h-full bg-green-500";
+  else if (volPercent < 70) barraVolumen.className = "h-full bg-yellow-400";
+  else barraVolumen.className = "h-full bg-red-500";
+
   requestAnimationFrame(actualizarVolumen);
 }
 

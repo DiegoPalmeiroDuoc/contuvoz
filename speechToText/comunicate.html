@@ -38,13 +38,24 @@
   </style>
 </head>
 
-<body class="bg-green-100 bg-[url('../img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed h-screen 
-  bg-green-100 font-sans text-center p-6 flex flex-col justify-center items-center">
-  <section class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-md sm:max-w-lg md:max-w-xl border-4 border-green-300">
-    <h1 class="text-3xl sm:text-4xl font-bold text-green-700 mb-4">🤟 Practica tu letra</h1>
-    <p class="text-base sm:text-lg text-gray-700 mb-4">Haz la letra que se indica y mantenla por 3 segundos.</p>
+<body class="bg-green-100 bg-[url('../../img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed min-h-screen 
+  font-sans text-center p-6 flex flex-col justify-center items-center">
 
-    <div id="videoWrapper" class="mb-6 shadow-lg border-4 border-green-400 rounded-xl overflow-hidden">
+<section class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-4xl border-4 border-green-300 
+  flex flex-col md:flex-row gap-6 items-center">
+
+  <!-- Panel Izquierdo: Imagen de la seña -->
+  <div class="flex flex-col items-center w-full md:w-1/3">
+    <h2 class="text-3xl sm:text-4xl font-bold text-green-700 mb-4">👉 Practica Lengua de Señas</h2>
+    <img id="imgSeña" src="../../img/senas/a.png" alt="Seña" 
+      class="w-72 h-72 object-contain rounded-xl border-4 border-green-300 shadow" />
+    <p class="mt-3 text-3xl text-green-800 font-bold">Letra: <span id="letraObjetivoTexto">A</span></p>
+  </div>
+
+  <!-- Panel Derecho: Video + Canvas -->
+  <div class="flex-1 w-full">
+    <p class="text-base sm:text-lg text-gray-700 mb-4">Haz la seña que se indica y mantenla por 3 segundos.</p>
+    <div id="videoWrapper" class="mb-6 shadow-lg border-4 border-green-400 rounded-xl overflow-hidden relative">
       <video id="videoElement" class="scale-x-[-1]" autoplay playsinline muted></video>
       <canvas id="outputCanvas" class="scale-x-[-1]"></canvas>
       <div id="letraDetectada" class="overlay-text absolute"></div>
@@ -55,7 +66,8 @@
       class="bg-yellow-400 hover:bg-yellow-500 text-white text-lg sm:text-xl font-bold px-6 py-3 rounded-xl shadow inline-block transition transform hover:scale-105">
       ⬅ Volver
     </a>
-  </section>
+  </div>
+</section>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,6 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvasCtx = canvasElement.getContext('2d');
   const letraDiv = document.getElementById('letraDetectada');
   const conteoDiv = document.getElementById('conteoEstado');
+  const imgSeña = document.getElementById('imgSeña');
+  const letraObjetivoTexto = document.getElementById('letraObjetivoTexto');
 
   const letrasEstaticas = ['A','B','C','D','E','F','G','H','I','K','L','M','N','O','R','S','T','U','V','W','X','Y'];
 
@@ -73,6 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let detectando = false;
   let temporizador = null;
   let prevLandmarks = [];
+
+  actualizarLetraObjetivo(letraObjetivo);
 
   const hands = new Hands({
     locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
@@ -124,6 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
     canvasElement.height = videoElement.videoHeight;
   });
 
+  function actualizarLetraObjetivo(nuevaLetra) {
+    letraObjetivo = nuevaLetra;
+    imgSeña.src = `../../img/senas/${letraObjetivo}.png`;
+    letraObjetivoTexto.textContent = letraObjetivo;
+  }
+
   function actualizarTexto() {
     if (detectando) {
       conteoDiv.innerHTML = `✅ ¡Mantén <span class="text-green-700">${letraObjetivo}</span>! ${contador}`;
@@ -147,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         contador = 0;
         actualizarTexto();
         setTimeout(() => {
-          letraObjetivo = elegirLetraAleatoria();
+          actualizarLetraObjetivo(elegirLetraAleatoria());
           reiniciarConteo();
         }, 1500);
       }
@@ -179,91 +201,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function detectarLetra(landmarks) {
-  const estirado = (tip, pip) => landmarks[tip].y < landmarks[pip].y - 0.04;
-  const pulgarExtendido = Math.abs(landmarks[4].x - landmarks[2].x) > 0.07;
+    const estirado = (tip, pip) => landmarks[tip].y < landmarks[pip].y - 0.04;
+    const pulgarExtendido = Math.abs(landmarks[4].x - landmarks[2].x) > 0.07;
 
-  const indice = estirado(8,6);
-  const medio = estirado(12,10);
-  const anular = estirado(16,14);
-  const menique = estirado(20,18);
+    const indice = estirado(8,6);
+    const medio = estirado(12,10);
+    const anular = estirado(16,14);
+    const menique = estirado(20,18);
 
-  const distIndiceMedio = Math.abs(landmarks[8].x - landmarks[12].x);
-  const distIndicePulgar = Math.abs(landmarks[8].x - landmarks[4].x);
+    const distIndiceMedio = Math.abs(landmarks[8].x - landmarks[12].x);
+    const distIndicePulgar = Math.abs(landmarks[8].x - landmarks[4].x);
 
-  // === LETRAS ===
-  if (!pulgarExtendido && !indice && !medio && !anular && !menique)
-    return 'A';
+    if (!pulgarExtendido && !indice && !medio && !anular && !menique) return 'A';
+    if (!pulgarExtendido && indice && medio && anular && menique) return 'B';
+    if (pulgarExtendido && indice && medio && anular && menique && distIndicePulgar < 0.06) return 'C';
+    if (!pulgarExtendido && indice && !medio && !anular && !menique) return 'D';
+    if (pulgarExtendido && !indice && !medio && !anular && !menique) return 'E';
+    if (pulgarExtendido && indice && medio && !anular && !menique && distIndiceMedio > 0.03) return 'F';
+    if (pulgarExtendido && indice && !medio && !anular && !menique) return 'G';
+    if (!pulgarExtendido && indice && medio && !anular && !menique) return distIndiceMedio < 0.015 ? 'R' : 'H';
+    if (!pulgarExtendido && !indice && !medio && !anular && menique) return 'I';
+    if (pulgarExtendido && indice && medio && !anular && !menique && distIndiceMedio > 0.04) return 'K';
+    if (pulgarExtendido && indice && !medio && !anular && !menique) return 'L';
+    if (pulgarExtendido && !indice && !medio && !anular && menique) return 'M';
+    if (pulgarExtendido && !indice && !medio && anular && menique) return 'N';
+    if (pulgarExtendido && indice && medio && anular && menique && distIndicePulgar > 0.06) return 'O';
+    if (pulgarExtendido && indice && medio && !anular && !menique && distIndiceMedio > 0.06) return 'P';
+    if (pulgarExtendido && indice && !medio && !anular && !menique && distIndicePulgar > 0.07) return 'Q';
+    if (pulgarExtendido && !indice && !medio && !anular && !menique) return 'S';
+    if (!pulgarExtendido && !indice && !medio && !anular && !menique) return 'T';
+    if (!pulgarExtendido && indice && medio && !anular && !menique) return distIndiceMedio < 0.035 ? 'U' : 'V';
+    if (!pulgarExtendido && indice && medio && anular && !menique) return 'W';
+    if (!pulgarExtendido && indice && !medio && !anular && !menique) return 'X';
+    if (pulgarExtendido && !indice && !medio && !anular && menique) return 'Y';
 
-  if (!pulgarExtendido && indice && medio && anular && menique)
-    return 'B';
-
-  if (pulgarExtendido && indice && medio && anular && menique && distIndicePulgar < 0.06)
-    return 'C';
-
-  if (!pulgarExtendido && indice && !medio && !anular && !menique)
-    return 'D';
-
-  if (pulgarExtendido && !indice && !medio && !anular && !menique)
-    return 'E';
-
-  if (pulgarExtendido && indice && medio && !anular && !menique && distIndiceMedio > 0.03)
-    return 'F';
-
-  if (pulgarExtendido && indice && !medio && !anular && !menique)
-    return 'G';
-
-  if (!pulgarExtendido && indice && medio && !anular && !menique) {
-    if (distIndiceMedio < 0.015) return 'R';  // cruzados
-    else return 'H';                          // paralelos
+    return '';
   }
-
-  if (!pulgarExtendido && !indice && !medio && !anular && menique)
-    return 'I';
-
-  if (pulgarExtendido && indice && medio && !anular && !menique && distIndiceMedio > 0.04)
-    return 'K';
-
-  if (pulgarExtendido && indice && !medio && !anular && !menique)
-    return 'L';
-
-  if (pulgarExtendido && !indice && !medio && !anular && menique)
-    return 'M';
-
-  if (pulgarExtendido && !indice && !medio && anular && menique)
-    return 'N';
-
-  if (pulgarExtendido && indice && medio && anular && menique && distIndicePulgar > 0.06)
-    return 'O';
-
-  if (pulgarExtendido && indice && medio && !anular && !menique && distIndiceMedio > 0.06)
-    return 'P';
-
-  if (pulgarExtendido && indice && !medio && !anular && !menique && distIndicePulgar > 0.07)
-    return 'Q';
-
-  if (pulgarExtendido && !indice && !medio && !anular && !menique)
-    return 'S';
-
-  if (!pulgarExtendido && !indice && !medio && !anular && !menique)
-    return 'T';
-
-  if (!pulgarExtendido && indice && medio && !anular && !menique) {
-    if (distIndiceMedio < 0.035) return 'U';
-    else return 'V';
-  }
-
-  if (!pulgarExtendido && indice && medio && anular && !menique)
-    return 'W';
-
-  if (!pulgarExtendido && indice && !medio && !anular && !menique)
-    return 'X';
-
-  if (pulgarExtendido && !indice && !medio && !anular && menique)
-    return 'Y';
-
-  return '';
-}
-
 });
 </script>
 </body>
