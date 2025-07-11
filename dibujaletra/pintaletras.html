@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎨 Dibuja Letras Compacto</title>
+  <title>🎨 Dibuja Letras</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet"/>
@@ -15,6 +15,10 @@
 <body class="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-100 flex items-center justify-center p-3 text-gray-800">
 
 <section class="bg-white p-4 rounded-3xl shadow-xl max-w-xl w-full border-4 border-green-300 text-center mx-auto">
+  <p class="text-lg font-semibold mb-2 text-green-800 flex items-center justify-center gap-2">
+    <img src="img/gecko.png" alt="gecko" class="w-8 h-8"> 
+    🦎 ¡Hola! Ayúdame a pintar esta letra
+  </p>
   <h1 class="text-xl font-bold text-green-700 mb-2">🎨 ¡Dibuja la letra!</h1>
 
   <div class="mb-2 flex items-center justify-center gap-2">
@@ -47,6 +51,7 @@
   <div id="mensaje" class="text-lg font-bold mt-1 text-green-800 min-h-[2rem]"></div>
 </section>
 
+<script src="letras.js"></script>
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -57,6 +62,9 @@ let offsetY = 0;
 
 let userGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
 let targetGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+
+// PINCEL adaptado al grosor de las letras
+const grosorPincel = 4;
 
 function resizeCanvas() {
   const size = canvas.clientWidth; 
@@ -184,8 +192,8 @@ function getMouseGridPos(evt) {
 }
 
 function pintar(x, y) {
-  for (let dx = -2; dx <= 2; dx++) {
-    for (let dy = -2; dy <= 2; dy++) {
+  for (let dx = -grosorPincel; dx <= grosorPincel; dx++) {
+    for (let dy = -grosorPincel; dy <= grosorPincel; dy++) {
       const nx = x + dx, ny = y + dy;
       if (nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize) {
         userGrid[ny][nx] = 1;
@@ -210,7 +218,6 @@ canvas.addEventListener('mousemove', e => {
 canvas.addEventListener('mouseup', () => dibujando = false);
 canvas.addEventListener('mouseleave', () => dibujando = false);
 
-// Soporte táctil móvil
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   dibujando = true;
@@ -240,7 +247,5 @@ const select = document.getElementById('letra');
 select.innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => `<option value="${l}">${l}</option>`).join('');
 cargarLetra();
 </script>
-
-<script src="letras.js"></script>
 </body>
 </html>
