@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#34d399">
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🗣️ Di esta palabra</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body { font-family: 'Comic Sans MS', cursive, sans-serif; }
-    </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#34d399">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🗣️ Di esta palabra</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-100 text-gray-800 flex flex-col items-center justify-center p-6">
+
+<body class="bg-green-100 bg-[url('../img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed h-screen 
+  bg-green-100 font-sans text-center p-6 flex flex-col justify-center items-center">
   <section class="bg-white rounded-3xl shadow-2xl p-8 max-w-xl w-full text-center border-4 border-green-300">
     <h2 class="text-4xl font-bold text-green-700 mb-6">🗣️ Di esta palabra</h2>
 
-    <img id="imgPalabra" src="img/palabras/mama.png"
-      alt="Imagen de palabra"
+    <img id="imgPalabra" src="img/palabras/mama.png" alt="Imagen de palabra"
       class="w-48 h-48 mx-auto mb-6 object-contain rounded-2xl border-4 border-green-300" />
 
     <p class="text-4xl font-semibold mb-7">
@@ -30,6 +34,11 @@
       🎙️ Pronunciar
     </button>
 
+    <button id="btnOtraPalabra"
+      class="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl py-3 px-5 rounded-xl shadow-lg transition mb-6">
+      🔄 Otra palabra
+    </button>
+
     <p id="resultado" class="text-lg text-gray-700 mb-6 min-h-[2rem]"></p>
 
     <a href="../speechToText/hablemos.html"
@@ -39,13 +48,40 @@
   </section>
 
 <script>
+const palabras = [
+  { texto: "mamá", imagen: "../img/palabras/mama.png" },
+  { texto: "papá", imagen: "../img/palabras/papa.png" },
+  { texto: "agua", imagen: "../img/palabras/agua.png" },
+  { texto: "sol", imagen: "../img/palabras/sol.png" },
+  { texto: "luz", imagen: "../img/palabras/luz.png" },
+  { texto: "gato", imagen: "../img/palabras/gato.png" },
+  { texto: "perro", imagen: "../img/palabras/perro.png" }
+];
+
 const palabraTexto = document.getElementById("palabraTexto");
+const imgPalabra = document.getElementById("imgPalabra");
 const indicadorVolumen = document.getElementById("indicadorVolumen");
 const resultado = document.getElementById("resultado");
 const startBtn = document.getElementById("startRecognition");
+const btnOtraPalabra = document.getElementById("btnOtraPalabra");
+
+let palabraActual = {};
+
+function mostrarNuevaPalabra() {
+  palabraActual = palabras[Math.floor(Math.random() * palabras.length)];
+  palabraTexto.textContent = palabraActual.texto;
+  imgPalabra.src = palabraActual.imagen;
+  imgPalabra.alt = `Imagen de ${palabraActual.texto}`;
+  resultado.textContent = "";
+}
+
+mostrarNuevaPalabra();
+
+btnOtraPalabra.addEventListener("click", () => {
+  mostrarNuevaPalabra();
+});
 
 let recognition;
-
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
@@ -69,8 +105,7 @@ if (recognition) {
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript.toLowerCase();
     resultado.textContent = `Dijiste: ${transcript}`;
-
-    if (transcript.includes(palabraTexto.textContent.toLowerCase())) {
+    if (transcript.includes(palabraActual.texto.toLowerCase())) {
       resultado.innerHTML += ` <span class="text-green-700 font-bold">✅ ¡Correcto!</span>`;
     } else {
       resultado.innerHTML += ` <span class="text-red-600 font-bold">❌ No coincidió</span>`;
@@ -89,5 +124,8 @@ if (recognition) {
   };
 }
 </script>
+
+
 </body>
+
 </html>
