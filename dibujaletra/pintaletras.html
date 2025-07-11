@@ -93,6 +93,7 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 function centerAndDrawLetter(letra) {
+  if (!letra || !letra._lines) return;
   let minX=gridSize, minY=gridSize, maxX=0, maxY=0;
   letra._lines.forEach(([p1, p2]) => {
     [p1, p2].forEach(([x, y]) => {
@@ -148,9 +149,10 @@ function drawGrid() {
 
 async function cargarLetra() {
   const letraSeleccionada = document.getElementById('letra').value;
-  document.getElementById("ejemploPalabra").textContent = 
-    `${letraSeleccionada} de ${palabrasEjemplo[letraSeleccionada] || ''}`;
-
+  const ej = document.getElementById("ejemploPalabra");
+  if (ej) {
+    ej.textContent = `${letraSeleccionada} de ${palabrasEjemplo[letraSeleccionada] || ''}`;
+  }
   userGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
   targetGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
   const letraFn = letras[letraSeleccionada];
