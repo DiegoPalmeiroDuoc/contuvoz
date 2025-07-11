@@ -1,48 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#34d399">
-      <script src="https://cdn.tailwindcss.com"></script>
 
-    <meta charset="UTF-8" />
-    <title>Menú Principal - Gecko</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-green-100 font-sans text-center p-6">
-    <h1 class="text-4xl font-bold text-green-800 mb-10">¡Elige una actividad!</h1>
-    <div class="flex flex-col gap-6 items-center max-w-4xl mx-auto">
-      <div onclick="location.href='dibujaletra/pintaletras.html'"
-           class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
-        <span class="text-left">🎨 Pinta Letras</span>
-        <img src="img/gecko dibujando.png" alt="Gecko con pincel"
-             class="w-30 h-32 object-cover rounded-2xl"/>
-      </div>
-      <div onclick="location.href='speechToText/hablemos.html'"
-           class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
-        <span class="text-left">🗣️ Hablemos!</span>
-        <img src="img/gecko habla.png" alt="Gecko enseñando"
-             class="w-30 h-32 object-cover rounded-2xl"/>
-      </div>
-      <div onclick="location.href='speechToText/comunicate.html'"
-           class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
-        <span class="text-left">🤝 Comunícate</span>
-        <img src="img/ChatGPT Image 6 jul 2025, 10_00_48 a.m..png" alt="Gecko saludando"
-             class="w-50 h-32 object-cover rounded-2xl"/>
-      </div>
-            <div onclick="location.href='speechToText/comunicate.html'"
-           class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
-        <span class="text-left">📚 Biblioteca</span>
-        <img src="img/gecko biblioteca.png" alt="Gecko saludando"
-             class="w-50 h-32 object-cover rounded-2xl"/>
-      </div>
-           <div onclick="location.href='modulos/progreso.html'"
-             class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
-             <span class="text-left">📐Mi progreso</span>
-               <img src="img/gecko logistico.png" alt="Gecko con libro"
-              class="w-30 h-32 object-cover rounded-2xl"/>
-            </div>
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#34d399">
+  <script src="https://cdn.tailwindcss.com"></script>
 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menú Principal - Gecko</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-green-100 bg-[url('img/fondo.jpg')] bg-no-repeat bg-cover bg-center bg-fixed h-screen bg-green-100 font-sans text-center p-6 flex flex-col justify-center">
+  <h1 class="text-4xl font-bold text-white mb-5">¡Elige una actividad!</h1>
+
+
+  <div class="flex flex-col gap-3 sm:gap-2 md:gap-2 xl:gap-2 items-center w-full max-w-md mx-auto">
+    <!-- Boton Pinta Letras -->
+    <div onclick="location.href='dibujaletra/pintaletras.html'"
+      class="w-full max-w-xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
+      <span class="text-left">🎨 Pinta Letras</span>
+      <img src="img/gecko dibujando.png" alt="Gecko con pincel" class="w-1/4 h-auto object-cover" />
     </div>
-  </body>
+    <!-- Boton Hablemos -->
+    <div onclick="location.href='speechToText/hablemos.html'"
+      class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
+      <span class="text-left">🗣️ Hablemos!</span>
+      <img src="img/gecko habla.png" alt="Gecko enseñando" class="w-1/6 h-auto object-cover" />
+    </div>
+    <!-- Boton Comunicate -->
+    <div onclick="location.href='speechToText/comunicate.html'"
+      class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
+      <span class="text-left">🤝 Comunícate</span>
+      <img src="img/ChatGPT Image 6 jul 2025, 10_00_48 a.m..png" alt="Gecko saludando"
+        class="w-1/4 h-auto object-cover" />
+    </div>
+    <!-- Boton Biblioteca -->
+    <div onclick="location.href='speechToText/biblioteca.html'"
+      class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
+      <span class="text-left">📚 Biblioteca</span>
+      <img src="img/gecko biblioteca.png" alt="Gecko saludando" class="w-1/4 h-auto object-cover" />
+    </div>
+    <!-- Boton -->
+    <div onclick="location.href='modulos/progreso.html'"
+      class="w-full max-w-2xl bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-3xl shadow-lg transition transform hover:scale-105 cursor-pointer flex items-center justify-between p-6">
+      <span class="text-left">📐Mi progreso</span>
+      <img src="img/gecko logistico.png" alt="Gecko con libro" class="w-1/4 h-auto object-cover" />
+    </div>
+
+  </div>
+</body>
+
 </html>
